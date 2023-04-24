@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="https://www.thymeleaf.org"
+      th:replace="~{layout/layout-admin :: main-fragment(
+        ~{:: title},
+        ~{},
+        ~{:: .course-list},
+        ~{:: #js}
+      )}
+">
+
+<head>
+    <title>Danh sách chủ đề</title>
+</head>
+
+<body>
+<!-- BODY -->
+<div class="course-list m-4">
+    <div class="mb-4">
+        <button class="btn-custom btn-create-course" data-bs-toggle="modal" data-bs-target="#modalCreateTopic">
+            <span><i class="fa-solid fa-plus"></i></span>
+            Tạo chủ đề
+        </button>
+        <a href="/admin/topics" class="btn-custom btn-refresh">
+            <span><i class="fa-solid fa-arrow-rotate-right"></i></span>
+            Refresh
+        </a>
+    </div>
+
+    <!-- Modal Create Topic -->
+    <div class="modal fade" id="modalCreateTopic" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+         aria-labelledby="modalCreateTopicLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="modalCreateTopicLabel">Tạo chủ đề</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control" id="input-create" placeholder="Enter name">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="btn-create-topic">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Update Topic -->
+    <div class="modal fade" id="modalUpdateTopic" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+         aria-labelledby="modalUpdateTopicLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="modalUpdateTopicLabel">Cập nhật chủ đề</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control" id="input-update" placeholder="Enter name">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="btn-update-topic">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="course-list-inner p-2">
+                <table class="table course-table">
+                    <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên chủ đề</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <th:block th:with="topicList=${data.content}">
+                    <tr th:each="topic, state : ${topicList}">
+                        <td th:text="${(state.index + 1) + ((data.pageNumber - 1) * data.pageSize)}">1</td>
+                        <td th:text="${topic.name}"></td>
+                        <td>
+                            <button class="btn btn-warning" th:onclick="|openModalUpdate(${topic.id})|">Edit</button>
+                            <button class="btn btn-danger" th:onclick="|deleteTopic(${topic.id})|">Delete</button>
+                        </td>
+                    </tr>
+                    </th:block>
+                    </tbody>
+                </table>
+
+                <div class="d-flex justify-content-center mt-3" th:if="${data.totalPages.size()} > 1">
+                    <nav>
+                        <ul class="pagination">
+                            <li class="page-item" th:if="${not data.first}">
+                                <a class="page-link"
+                                   th:href="@{/admin/topics?page={pageNumber} (pageNumber = ${data.pageNumber - 1})}"
+                                   aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item" th:each="p : ${data.totalPages}"
+                                th:classappend="${p == data.pageNumber} ? 'active' : ''">
+                                <a class="page-link" th:href="@{/admin/topics?page={pageNumber} (pageNumber = ${p})}"
+                                   th:text="${p}">1</a>
+                            </li>
+                            <li class="page-item" th:if="${not data.last}">
+                                <a class="page-link"
+                                   th:href="@{/admin/topics?page={pageNumber} (pageNumber = ${data.pageNumber + 1})}"
+                                   aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<th:block id="js">
+    <script th:inline="javascript">
+        let topicList = [[${data.content}]];
+
+        // Render Topic
+        const tableContent = document.querySelector("tbody")
+        const renderTopics = topicList => {
+            tableContent.innerHTML = "";
+            let html = "";
+            topicList.forEach((topic, index) => {
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${topic.name}</td>
+                        <td>
+                            <button class="btn btn-warning" onclick="openModalUpdate(${topic.id})">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteTopic(${topic.id})">Delete</button>
+                        </td>
+                    </tr>
+                `
+            })
+            tableContent.innerHTML = html;
+        }
+
+        // Tạo chủ đề
+        const btnCreateTopic = document.getElementById("btn-create-topic");
+        const inputCreateEl = document.getElementById("input-create");
+        const myModalCreateTopic = new bootstrap.Modal("#modalCreateTopic", {
+            keyboard: false
+        })
+        btnCreateTopic.addEventListener("click", async () => {
+            try {
+                const name = inputCreateEl.value;
+                if (!name || name === "") {
+                    toastr.error("Tên chủ đề không được để trống")
+                    return
+                }
+
+                let res = await axios.post("/api/admin/topics", {name})
+
+                topicList.push(res.data)
+                renderTopics(topicList)
+                myModalCreateTopic.hide()
+                toastr.success("Tạo thành công")
+            } catch (e) {
+                toastr.error(e.response.data.message);
+                console.log(e);
+            }
+        })
+
+        // Cập nhật chủ đề
+        let idTopicUpdate = null;
+        const btnUpdateTopic = document.getElementById("btn-update-topic");
+        const inputUpdateEl = document.getElementById("input-update");
+        const modalUpdateTopicEl = document.getElementById("modalUpdateTopic")
+        const myModalUpdateTopic = new bootstrap.Modal("#modalUpdateTopic", {
+            keyboard: false
+        })
+
+        modalUpdateTopicEl.addEventListener('hidden.bs.modal', event => {
+            idTopicUpdate = null;
+        })
+
+        const openModalUpdate = (id) => {
+            const topic = topicList.find(topic => topic.id === id)
+            inputUpdateEl.value = topic.name
+            idTopicUpdate = topic.id;
+            myModalUpdateTopic.show()
+        }
+
+        btnUpdateTopic.addEventListener("click", async () => {
+            try {
+                const name = inputUpdateEl.value;
+                if (!name || name === "") {
+                    toastr.error("Tên chủ đề không được để trống")
+                    return
+                }
+
+                let res = await axios.put(`/api/admin/topics/${idTopicUpdate}`, {name})
+
+                const topic = topicList.find(topic => topic.id === idTopicUpdate)
+                topic.name = res.data.name;
+                renderTopics(topicList)
+                myModalUpdateTopic.hide()
+                idTopicUpdate = null;
+                toastr.success("Cập nhật thành công")
+            } catch (e) {
+                toastr.error(e.response.data.message);
+                console.log(e);
+            }
+        })
+
+        // Xóa
+        const deleteTopic = async (id) => {
+            const isConfirm = window.confirm("Bạn có muốn xóa không")
+            if (isConfirm) {
+                try {
+                    await axios.delete(`/api/admin/topics/${id}`)
+
+                    topicList = topicList.filter(topic => topic.id !== id)
+                    renderTopics(topicList)
+                    toastr.success("Xóa thành công")
+                } catch (e) {
+                    toastr.error(e.response.data.message);
+                    console.log(e);
+                }
+            }
+        }
+    </script>
+</th:block>
+</body>
+
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="https://www.thymeleaf.org"
+      th:replace="~{layout/layout-admin :: main-fragment(
+        ~{:: title},
+        ~{:: #css},
+        ~{:: .course-list},
+        ~{:: #js}
+      )}
+">
+
+<head>
+    <title>Chi tiết user</title>
+
+    <!-- Link select2 -->
+    <th:block id="css">
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    </th:block>
+</head>
+
+<body>
+
+<!-- BODY -->
+<div class="course-list m-4">
+    <div class="mb-4">
+        <button class="btn-custom btn-update-course" id="btn-update-user">
+            <span><i class="fa-solid fa-plus"></i></span>
+            Cập nhật
+        </button>
+        <a href="/admin/users" class="btn-custom btn-refresh">
+            <span><i class="fa-solid fa-angle-left"></i></span>
+            Quay lại
+        </a>
+    </div>
+    <div class="row">
+        <div class="col-lg-9">
+            <div class="course-list-inner p-2">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="user-name" class="form-label fw-bold">Tên</label>
+                            <input type="text" class="form-control" id="user-name" th:value="${user.name}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="user-email" class="form-label fw-bold">Email</label>
+                            <input type="text" class="form-control" id="user-email" th:value="${user.email}" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label for="user-password" class="form-label fw-bold">Password</label>
+                            <input type="text" class="form-control" id="user-password" value="******" disabled>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="user-phone" class="form-label fw-bold">Số điện thoại</label>
+                            <input type="text" class="form-control" id="user-phone" th:value="${user.phone}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="user-roles" class="form-label fw-bold">Roles</label>
+                            <select class="form-control" id="user-roles" multiple="multiple">
+                                <option
+                                        th:each="role : ${roleList}"
+                                        th:value="${role.id}"
+                                        th:text="${role.name}"
+                                >USER
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Avatar</label>
+                            <div class="user-avatar-preview mb-3 rounded">
+                                <img id="user-avatar-preview" class="rounded"
+                                     th:src="${user.avatar} ?: 'https://placehold.co/400'">
+                            </div>
+
+                            <label for="user-avatar-input" class="btn btn-warning">Đổi ảnh</label>
+                            <input type="file" id="user-avatar-input" class="d-none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block id="js">
+    <!-- select2 -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script th:inline="javascript">
+        let user = [[${user}]]
+
+        // Truy cập vào các thành phần
+        const userName = document.getElementById("user-name");
+        const userPhone = document.getElementById("user-phone");
+        const userRoles = $("#user-roles");
+        const btnUpdate = document.getElementById("btn-update-user")
+
+        const userAvatarPreview = document.getElementById("user-avatar-preview");
+        const userAvatarInput = document.getElementById("user-avatar-input");
+
+        // Kích hoạt select2
+        userRoles.select2({
+            placeholder: "- Chọn role"
+        })
+
+        // Set thông tin topic
+        userRoles.val(user.roles.map(e => e.id.toString())).trigger("change");
+
+        // Tạo khóa học
+        btnUpdate.addEventListener("click", async () => {
+            let roles = userRoles.val();
+            let rolesConvert = roles.map(e => Number(e));
+
+            try {
+                let res = await axios.put(`/api/admin/users/${user.id}`, {
+                    name: userName.value,
+                    phone: userPhone.value,
+                    roleIds: rolesConvert
+                })
+
+                if (res.data) {
+                    toastr.success("Cập nhật thông tin thành công");
+                }
+            } catch (e) {
+                toastr.error(e.response.data.message);
+                console.log(e);
+            }
+        })
+
+        // Upload avatar
+        userAvatarInput.addEventListener("change", async (event) => {
+            try {
+                const file = event.target.files[0];
+
+                let formData = new FormData();
+                formData.append("file", file);
+
+                let res = await axios.post(`/api/admin/users/${user.id}/upload-avatar`, formData)
+                toastr.success("Cập nhật avatar thành công");
+                userAvatarPreview.src = res.data.url;
+            } catch (e) {
+                toastr.error(e.response.data.message);
+                console.log(e);
+            }
+        })
+    </script>
+</th:block>
+
+</body>
+
+</html>

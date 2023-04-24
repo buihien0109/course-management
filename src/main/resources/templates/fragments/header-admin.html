@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<nav class="d-flex justify-content-end align-items-center px-3" id="header">
+    <div class="dropdown">
+        <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+           data-bs-toggle="dropdown" aria-expanded="false">
+            <th:block th:text="${#authentication.getPrincipal().name}"></th:block>
+        </a>
+
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+            <li>
+                <a class="dropdown-item" th:href="@{/khoa-hoc}">Trang chủ</a>
+            </li>
+            <li>
+                <button class="dropdown-item" id="btn-logout">Đăng xuất</button>
+            </li>
+        </ul>
+    </div>
+</nav>
+</body>
+</html>

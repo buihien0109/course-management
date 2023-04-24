@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Đăng nhập</title>
+
+    <link rel="shortcut icon" type="image/png" th:href="@{/image/favicon.ico}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <!-- Link icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+          integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"
+          integrity="sha512-vKMx8UnXk60zUwyUnUPM3HbQo8QfmNx7+ltw8Pm5zLusl1XIfwcxo8DbWCqMGKaWeNxWA8yrx5v3SaVpMvR3CA=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+
+<body>
+<div class="wrapper">
+    <form class="form-signin">
+        <h2 class="form-signin-heading text-center">Please login</h2>
+        <div class="form-input">
+            <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Enter email"
+                    autocomplete="off"
+                    id="email"
+            />
+            <small></small>
+        </div>
+        <div class="form-input">
+            <input
+                    type="password"
+                    class="form-control"
+                    placeholder="Enter password"
+                    autocomplete="off"
+                    id="password"
+            />
+            <span class="password-icon">
+                <i class="fa-regular fa-eye"></i>
+            </span>
+            <small></small>
+        </div>
+        <div class="text-center">
+            <button class="btn btn-primary px-4" type="submit">Login</button>
+        </div>
+    </form>
+</div>
+
+<!-- jQuery -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+        integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"
+        integrity="sha512-VEd+nq25CkR676O+pLBnDW09R7VQX9Mdiij052gVCp5yVH3jGtH70Ho/UUv4mJDsEdTvqRCFZg0NKGiojGnUCw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<!-- axios -->
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script th:inline="javascript">
+    toastr.options = {
+        "closeButton": true,
+        "debug": false,
+        "newestOnTop": false,
+        "progressBar": false,
+        "positionClass": "toast-top-center",
+        "preventDuplicates": false,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "2000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    }
+
+    const emailEle = document.getElementById('email');
+    const passwordEle = document.getElementById('password');
+
+    const formEl = document.querySelector('.form-signin');
+    const inputEles = document.querySelectorAll('.form-input');
+
+    // Ẩn hiện mật khẩu
+    const passwordIconEl = document.querySelector(".password-icon");
+    passwordIconEl.addEventListener("click", () => {
+        const icon = passwordIconEl.querySelector("i")
+        if(passwordEle.type === "password") {
+            passwordEle.type = "text"
+        } else {
+            passwordEle.type = "password"
+        }
+        icon.classList.toggle("fa-eye-slash")
+        icon.classList.toggle("fa-eye")
+    })
+
+
+    // Xử lý submit form login + validate
+    formEl.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        Array.from(inputEles).map((ele) =>
+            ele.classList.remove('success', 'error')
+        );
+        let isValid = checkValidate();
+
+        if (isValid) {
+            handleLogin();
+        }
+    });
+
+    // Xử lý login
+    const handleLogin = async () => {
+        try {
+            const res = await axios.post("/api/admin/login", {
+                email : emailEle.value,
+                password : passwordEle.value
+            })
+
+            if(res.data) {
+                toastr.success('Đăng nhập thành công')
+                setTimeout(() => {
+                    window.location.href = "/admin/courses"
+                }, 1500)
+            }
+        } catch (error) {
+            toastr.error(error.response.data.message)
+        }
+    }
+
+    // Xử lý validate các ô input
+    function checkValidate() {
+        let emailValue = emailEle.value;
+        let passwordValue = passwordEle.value;
+
+        let isCheck = true;
+
+        if (emailValue === '') {
+            setError(emailEle, 'Email không được để trống');
+            isCheck = false;
+        } else if (!isEmail(emailValue)) {
+            setError(emailEle, 'Email không đúng định dạng');
+            isCheck = false;
+        } else {
+            setSuccess(emailEle);
+        }
+
+        if (passwordValue === '') {
+            setError(passwordEle, 'Mật khẩu không được để trống');
+            isCheck = false;
+        } else {
+            setSuccess(passwordEle);
+        }
+
+        return isCheck;
+    }
+
+    function setSuccess(ele) {
+        ele.parentNode.classList.add('success');
+    }
+
+    function setError(ele, message) {
+        let parentEle = ele.parentNode;
+        parentEle.classList.add('error');
+        parentEle.querySelector('small').innerText = message;
+    }
+
+    function isEmail(email) {
+        return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+            email
+        );
+    }
+</script>
+</body>
+
+</html>
