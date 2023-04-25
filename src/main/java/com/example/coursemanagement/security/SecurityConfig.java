@@ -38,32 +38,32 @@ public class SecurityConfig {
         http
                 .csrf().disable()
                 .authorizeHttpRequests()
-                .requestMatchers(PUBLIC_ROUTE).permitAll()
-                .requestMatchers("GET", "/api/files/**").permitAll()
-                .requestMatchers("POST", "/api/files").hasAnyRole("ADMIN", "SALE")
-                .requestMatchers(
-                        "/admin/courses/**",
-                        "/api/admin/courses/**",
-                        "/admin/topics/**",
-                        "/api/admin/topics/**"
-                ).hasAnyRole("ADMIN", "SALE")
-                .requestMatchers(
-                        "/admin/users/**",
-                        "/api/admin/users/**"
-                ).hasRole("ADMIN")
-                .anyRequest().permitAll()
+                    .requestMatchers(PUBLIC_ROUTE).permitAll()
+                    .requestMatchers("GET", "/api/files/**").permitAll()
+                    .requestMatchers("POST", "/api/files").hasAnyRole("ADMIN", "SALE")
+                    .requestMatchers(
+                            "/admin/courses/**",
+                            "/api/admin/courses/**",
+                            "/admin/topics/**",
+                            "/api/admin/topics/**"
+                    ).hasAnyRole("ADMIN", "SALE")
+                    .requestMatchers(
+                            "/admin/users/**",
+                            "/api/admin/users/**"
+                    ).hasRole("ADMIN")
+                    .anyRequest().permitAll()
                 .and()
-                .exceptionHandling()
-                .authenticationEntryPoint(customAuthenticationEntryPoint)
-                .accessDeniedHandler(customAccessDenied)
+                    .exceptionHandling()
+                    .authenticationEntryPoint(customAuthenticationEntryPoint)
+                    .accessDeniedHandler(customAccessDenied)
                 .and()
-                .logout()
-                .logoutUrl("/api/admin/logout")
-                .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
-                .permitAll()
+                    .logout()
+                    .logoutUrl("/api/admin/logout")
+                    .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
+                    .permitAll()
                 .and()
-                .authenticationProvider(authenticationProvider)
-                .addFilterBefore(customFilter, UsernamePasswordAuthenticationFilter.class);
+                    .authenticationProvider(authenticationProvider)
+                    .addFilterBefore(customFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

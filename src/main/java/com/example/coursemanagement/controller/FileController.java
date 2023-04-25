@@ -2,13 +2,12 @@ package com.example.coursemanagement.controller;
 
 import com.example.coursemanagement.entity.FileServer;
 import com.example.coursemanagement.model.response.FileResponse;
+import com.example.coursemanagement.service.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import com.example.coursemanagement.service.FileService;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
